@@ -1,18 +1,22 @@
 Package: InterRcourse
 Type: Package
-Title: What the Package Does (Title Case)
+Title: RGB Image Filter Package
 Version: 0.1.0
 Authors@R: c(
     person(
       "Yue", "Zhu",
-      email = "jane@example.com",
+      email = "yue.zhu@ki.se",
       role = c("aut", "cre")
     )
   )
-Description: More about what it does (maybe more than one line).
-    Continuation lines should be indented.
-License: What license is it under?
+Description: A package implementing simple image filtering algorithms. 
+    Provides grayscale conversion and red, green, and blue cutoff filters. 
+License: MIT
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/yuezhu25/InterRcourse
 BugReports: https://github.com/yuezhu25/InterRcourse/issues
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Depends: R (>= 3.5.0)
+Imports: magick

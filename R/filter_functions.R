@@ -1,77 +1,42 @@
-#' Convert an RGB pixel to grayscale
-#'
-#' This function takes a raw RGB vector (length 3) and converts it to
-#' a grayscale pixel using the standard luminance formula:
-#' 0.299 * R + 0.587 * G + 0.114 * B.
-#'
-#' @param rgb_vec A raw vector of length 3 representing R, G, and B values.
-#' @return A raw vector of length 3 where all values are equal (grayscale).
-#' @examples
-#' rgb_to_greyscale(as.raw(c(50, 120, 10)))
-#'
-#' @export
-rgb_to_greyscale <- function(rgb_vec) {
-  R <- as.integer(rgb_vec[1])
-  G <- as.integer(rgb_vec[2])
-  B <- as.integer(rgb_vec[3])
+# ---- GREYSCALE FILTER ----
+grey_filter <- function(rgb_raw) {
+  rgb_num <- as.numeric(rgb_raw)
 
-  grey <- as.integer(R * 0.299 + G * 0.587 + B * 0.114)
+  grey_val <- rgb_num[1] * 0.299 +
+    rgb_num[2] * 0.587 +
+    rgb_num[3] * 0.114
 
-  raw(c(grey, grey, grey))
+  grey_val <- max(min(round(grey_val), 255), 0)
+  rep(as.raw(grey_val), 3)
 }
 
-#' Apply a red cutoff filter to an RGB pixel
-#'
-#' This function first converts a pixel to grayscale. If the grayscale value
-#' is below the cutoff (default = 127), it returns a pure red pixel.
-#' Otherwise, it returns black.
-#'
-#' @param rgb_vec A raw RGB pixel.
-#' @param cutoff Integer threshold between 0 and 255.
-#' @return A raw vector (RGB).
-#' @export
-rgb_to_red_cutoff <- function(rgb_vec, cutoff = 127) {
-  grey_val <- as.integer(rgb_to_greyscale(rgb_vec)[1])
+# ---- GENERIC CUTOFF FILTER ----
+cutoff_filter <- function(rgb_raw,
+                          cutoff = 0.5,
+                          on_color  = c(255, 0, 0),
+                          off_color = c(0, 0, 0)) {
 
-  if (grey_val < cutoff) {
-    raw(c(255, 0, 0))  # red
+  rgb_num <- as.numeric(rgb_raw)
+  grey_val <- rgb_num[1] * 0.299 +
+    rgb_num[2] * 0.587 +
+    rgb_num[3] * 0.114
+
+  if (cutoff <= 1) {
+    cutoff_val <- cutoff * 255
   } else {
-    raw(c(0, 0, 0))    # black
+    cutoff_val <- cutoff
   }
-}
 
-#' Apply a green cutoff filter to an RGB pixel
-#'
-#' Same logic as red cutoff but outputs green.
-#'
-#' @param rgb_vec A raw RGB pixel.
-#' @param cutoff Integer threshold between 0 and 255.
-#' @return A raw RGB pixel.
-#' @export
-rgb_to_green_cutoff <- function(rgb_vec, cutoff = 127) {
-  grey_val <- as.integer(rgb_to_greyscale(rgb_vec)[1])
-
-  if (grey_val < cutoff) {
-    raw(c(0, 255, 0))  # green
+  if (grey_val >= cutoff_val) {
+    out <- on_color
   } else {
-    raw(c(0, 0, 0))    # black
+    out <- off_color
   }
+
+  as.raw(pmax(pmin(round(out), 255), 0))
 }
 
-#' Apply a blue cutoff filter to an RGB pixel
-#'
-#' Same logic as red/green cutoff but outputs blue.
-#'
-#' @param rgb_vec A raw RGB pixel.
-#' @param cutoff Integer threshold between 0 and 255.
-#' @return A raw RGB pixel.
-#' @export
-rgb_to_blue_cutoff <- function(rgb_vec, cutoff = 127) {
-  grey_val <- as.integer(rgb_to_greyscale(rgb_vec)[1])
-
-  if (grey_val < cutoff) {
-    raw(c(0, 0, 255))  # blue
-  } else {
-    raw(c(0, 0, 0))    # black
-  }
-}
+# ---- COLOR FILTERS ----
+red_filter   <- function(rgb_raw, cutoff = 0.5) cutoff_filter(rgb_raw, cutoff, c(255, 0, 0), c(0,0,0))
+green_filter <- function(rgb_raw, cutoff = 0.5) cutoff_filter(rgb_raw, cutoff, c(0,255,0), c(0,0,0))
+blue_filter  <- function(rgb_raw, cutoff = 0.5) cutoff_filter(rgb_raw, cutoff, c(0,0,255), c(0,0,0))
